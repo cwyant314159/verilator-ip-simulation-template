@@ -19,36 +19,50 @@ MODULE := alu
 BIN_DIR := bin
 BIN     := tb_$(MODULE)
 
-# The verilator output names
-VERI_DIR    := verilate_obj
-VERI_PREFIX := design
-VERI_LIB    := $(VERI_DIR)/$(VERI_PREFIX)__ALL.a
+# This is the relative path to the verilator
+# support library.
+VERI_SUPPORT_ROOT := ../../../verilator_support
+VERI_SUPPORT_INC  := $(VERI_SUPPORT_ROOT)
+VERI_SUPPORT_LIB  := $(VERI_SUPPORT_ROOT)/lib/libverilator_support.a
 
-# C++ include directories and
-# compiler include (-I) argument
-# generation.
+# Verilator does not choose very good default
+# names for its outputs. To make Verilator
+# builds easier to work with, the output
+# directory and output file prefix are defined
+# with the following variables. The generic name
+# "design" was chosen to allow this Makefile to
+# be dropped into different projects.
+VERI_DIR    := verilate_obj
+VERI_PREFIX := tb_$(MODULE)
+DUT_LIB     := $(VERI_DIR)/$(VERI_PREFIX)__ALL.a
+
+# C++ include directories and compiler include
+# (-I) argument generation.
 INC_DIRS :=
 INC_DIRS += include
+INC_DIRS += $(VERI_SUPPORT_ROOT)/include
 INC_DIRS += $(VERI_DIR)
 
 INC_FLAGS := $(foreach dir, $(INC_DIRS), $(addprefix -I, $(dir)))
 
-# C++ source directory list and source
-# file generation. The SRC_FILE variable
-# is created by recursively searching
-# the SRC_DIRS for *.c and *.cpp files.
+# C++ source directory list and source file
+# generation. The SRC_FILE variable is created
+# by recursively searching the SRC_DIRS for *.c
+# and *.cpp files.
 SRC_DIRS :=
 SRC_DIRS += src
 
 SRC_FILES := $(foreach dir, $(SRC_DIRS), $(shell find $(dir) -type f -name '*.cpp'))
 SRC_FILES += $(foreach dir, $(SRC_DIRS), $(shell find $(dir) -type f -name '*.c'))
 
-# C++ compiled object directory and
-# object file list generation.
+# C++ compiled object directory and object file
+# list generation.
 OBJ_DIR := obj
+OBJS    := $(foreach obj, $(SRC_FILES:=.o), $(addprefix $(OBJ_DIR)/, $(obj)))
 
-OBJS := $(SRC_FILES:=.o)
-OBJS := $(foreach obj, $(OBJS), $(addprefix $(OBJ_DIR)/, $(obj)))
+# This list will be non-empty on subsequent compiles
+# assuming a clean was not done.
+DEPS := $(shell find . -type f -name '*.d')
 
 # Compiler flags that are common to both
 # C and C++.
@@ -87,11 +101,13 @@ endif
 # Be mindful of any ordering requirements
 SV_PKGS :=
 
-# The list of all SystemVerilog source files.
-# The packages are listed first since that is
-# typically what's required in a verilator compile
+# The list of all SystemVerilog source files. The
+# packages are listed first since that is typically
+# what's required in a verilator compile. Be mindful
+# of module dependencies. A module's dependency should
+# come before the module itself.
 SV_SRCS := $(SV_PKGS)
-SV_SRCS += ../hdl/$(MODULE).sv
+SV_SRCS += ../../hdl/$(MODULE).sv
 
 # The list of directories that contain the
 # SystemVerilog sources. These are prepended with
@@ -133,10 +149,10 @@ run: $(BIN_DIR)/$(BIN)
 	@$^
 
 # Verilate HDL
-verilate: $(VERI_LIB)
+verilate: $(DUT_LIB)
 
 # C++ application link target
-$(BIN_DIR)/$(BIN): $(OBJS) $(VERI_LIB)
+$(BIN_DIR)/$(BIN): $(DUT_LIB) $(VERI_SUPPORT_LIB) $(OBJS)
 	@$(MKDIR) $$(dirname $@)
 	$(LD) $(LDFLAGS) $^ -o $@
 
@@ -151,9 +167,13 @@ $(OBJ_DIR)/%.cpp.o: %.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 # Verilate target
-$(VERI_LIB): $(SV_SRCS)
+$(DUT_LIB): $(SV_SRCS)
 	verilator $(VERI_FLAGS) $^
 	make -C $(VERI_DIR) -f $(VERI_PREFIX).mk
+
+# Build verilator support library
+$(VERI_SUPPORT_LIB):
+	make -C $(VERI_SUPPORT_ROOT)
 
 # Clean up the project folder
 .PHONY: clean
@@ -161,6 +181,12 @@ clean:
 	$(RM) $(VERI_DIR)
 	$(RM) $(OBJ_DIR)
 	$(RM) $(BIN_DIR)
+
+# Clean up the project folder and support
+# library
+.PHONY: clean_all
+clean_all: clean
+	make -C $(VERI_SUPPORT_ROOT) clean
 
 # HDL linting target
 .PHONY: lint
@@ -180,6 +206,11 @@ dump:
 	@echo "RM    : $(RM)"
 	@echo "MKDIR : $(MKDIR)"
 	@echo "BIN   : $(BIN_DIR)/$(BIN)"
+	@echo ""
+	@echo "VERI_INSTALL: $(VERI_INSTALL)"
+	@echo "VERI_DIR    : $(VERI_DIR)"
+	@echo "VERI_PREFIX : $(VERI_PREFIX)"
+	@echo "DUT_LIB     : $(DUB_LIB)"
 	@echo ""
 	@echo "INC_DIRS:"
 	@echo "$$(echo "$(INC_DIRS)" | $(DUMP_FMT))"
@@ -202,7 +233,7 @@ dump:
 	@echo "LDFLAGS"
 	@echo "$$(echo "$(LDFLAGS)" | $(DUMP_FMT))"
 
-# Handle and .d files
-DEPS := $(shell find $(OBJ_DIR) -name '*.d')
-DEPS += $(shell find $(VERI_DIR) -name '*.d')
+# Handle and .d files if thte list is not empty
+ifneq ($(DEPS),)
 include $(DEPS)
+endif
