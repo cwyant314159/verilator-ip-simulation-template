@@ -70,6 +70,7 @@ COMMON_FLAGS :=
 COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Wextra
 COMMON_FLAGS += -Wshadow
+COMMON_FLAGS += -Wno-unused-parameter
 COMMON_FLAGS += -ffunction-sections
 COMMON_FLAGS += -fdata-sections
 COMMON_FLAGS += -MMD
@@ -99,7 +100,7 @@ endif
 
 # The list of SystemVerilog packages.
 # Be mindful of any ordering requirements
-SV_PKGS :=
+SV_PKGS := ../../hdl/op_code_pkg.sv
 
 # The list of all SystemVerilog source files. The
 # packages are listed first since that is typically
@@ -125,11 +126,15 @@ LINT_FLAGS += $(SV_INC_DIRS)
 
 # Verilator flags
 VERI_FLAGS := $(LINT_FLAGS)
+VERI_FLAGS += --x-assign unique
+VERI_FLAGS += --x-initial unique
+VERI_FLAGS += --trace
 VERI_FLAGS += --cc
 VERI_FLAGS += --Mdir $(VERI_DIR)
 VERI_FLAGS += --prefix $(VERI_PREFIX)
 VERI_FLAGS += --MMD
 VERI_FLAGS += --MP
+VERI_FLAGS += -GWIDTH=32
 
 # This variable is used by the dump
 # target to format the output of Make
@@ -146,7 +151,7 @@ all: $(BIN_DIR)/$(BIN)
 # Run the executable
 .PHONY: run
 run: $(BIN_DIR)/$(BIN)
-	@$^
+	@$^ +verilator+rand+reset+2
 
 # Verilate HDL
 verilate: $(DUT_LIB)
@@ -181,6 +186,7 @@ clean:
 	$(RM) $(VERI_DIR)
 	$(RM) $(OBJ_DIR)
 	$(RM) $(BIN_DIR)
+	$(RM) *.vcd
 
 # Clean up the project folder and support
 # library

@@ -1,24 +1,57 @@
-#include <verilated.h>
+#include "sim_alu.hpp"
 
-#include "hello.hpp"
-#include "tb_alu.h"
-
-constexpr int MAX_TIME = 20;
-
-int main(void)
+// MAIN
+int main(int argc, char** argv)
 {
-    int sim_time = 0;
-    tb_alu *dut = new tb_alu;
-    Hello::greet(27);
+    Verilated::commandArgs(argc, argv);
 
-    while(sim_time < MAX_TIME) {
-        dut->clock ^= 1;
-        dut->eval();
-        sim_time++;
+    SimAlu sim_alu;
+
+    sim_alu.reset();
+
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_and_test(a, b);
+        }
     }
 
-    dut->final();
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_nand_test(a, b);
+        }
+    }
 
-    delete dut;
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_or_test(a, b);
+        }
+    }
+
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_nor_test(a, b);
+        }
+    }
+
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_xor_test(a, b);
+        }
+    }
+
+    for (vluint32_t a = 0; a <= 0xFF; ++a) {
+        for (vluint32_t b = 0; b <= 0xFF; ++b) {
+            sim_alu.op_xnor_test(a, b);
+        }
+    }
+
+    for (vluint32_t a = 0; a <= 0xFFFF; ++a) {
+        sim_alu.op_not_a_test(a);
+    }
+
+    for (vluint32_t b = 0; b <= 0xFFFF; ++b) {
+        sim_alu.op_not_b_test(b);
+    }
+    
     return 0;
 }

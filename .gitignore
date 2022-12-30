@@ -3,6 +3,8 @@ lib
 obj
 verilate_obj
 
+*.vcd
+
 # The include library of the verilator support is copied from the install
 # directory of the verilator application. Do not track this include directory
 # since the include headers might change with the version of the tool.
