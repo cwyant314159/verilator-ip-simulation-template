@@ -1,67 +1,51 @@
-module alu (
+/****** alu.sv ******/
+module alu #(
+    parameter int WIDTH = 6
+) (
+    input logic              clk,
+    input logic              rst,
 
-    /* clocking interface */
-    input  logic       clock,
-    input  logic       reset,
+    input  logic[2:0]        op_in,
+    input  logic[WIDTH-1:0]  a_in,
+    input  logic[WIDTH-1:0]  b_in,
+    input  logic             in_valid,
 
-    /* control interface */
-    input  logic[2:0]  op,
-
-    /* data input interfaces */
-    input  logic       in_valid,
-    input  logic[31:0] a,
-    input  logic[31:0] b,
-
-    /* data ouput interface */
-    output logic       out_valid,
-    output logic[31:0] out
+    output logic [WIDTH-1:0] out,
+    output logic             out_valid
 );
 
-typedef enum logic[2:0] {
-    OP_AND   = 'h0,
-    OP_NAND  = 'h1,
-    OP_OR    = 'h2,
-    OP_NOR   = 'h3,
-    OP_XOR   = 'h4,
-    OP_XNOR  = 'h5,
-    OP_NOT_A = 'h6,
-    OP_NOT_B = 'h7
-} op_code_t /* verilator public */;
+import op_code_pkg::*;
 
-logic       valid_reg;
-logic[2:0]  op_reg;
-logic[31:0] a_reg;
-logic[31:0] b_reg;
+logic [2:0]       op_in_r;
+logic [WIDTH-1:0] a_in_r;
+logic [WIDTH-1:0] b_in_r;
+logic             in_valid_r;
+logic [WIDTH-1:0] result;
 
-logic       next_out_valid;
-logic[31:0] next_out;
-
-assign next_out_valid = valid_reg;
-
-always_comb
+// Register all inputs
+always_ff @ (posedge clk, posedge rst)
 begin
-    case(op_reg)
-    OP_AND   : next_out =   a_reg & b_reg;
-    OP_NAND  : next_out = ~(a_reg & b_reg);
-    OP_OR    : next_out =   a_reg | b_reg;
-    OP_NOR   : next_out = ~(a_reg | b_reg);
-    OP_XOR   : next_out =   a_reg ^ b_reg;
-    OP_XNOR  : next_out = ~(a_reg ^ b_reg);
-    OP_NOT_A : next_out = ~a_reg;
-    OP_NOT_B : next_out = ~b_reg;
-    endcase
+    // register all inputs
+    op_in_r    <= (rst) ? '0 : op_in;
+    a_in_r     <= (rst) ? '0 : a_in;
+    b_in_r     <= (rst) ? '0 : b_in;
+    in_valid_r <= (rst) ? '0 : in_valid;
+
+    // register all outputs
+    out       <= (rst) ? '0 : result;
+    out_valid <= (rst) ? '0 : in_valid_r;
 end
 
-always_ff @ (posedge clock or posedge reset)
-begin
-    op_reg    <= (reset) ? '0 : op;
-
-    valid_reg <= (reset) ? '0 : in_valid;
-    a_reg     <= (reset) ? '0 : a;
-    b_reg     <= (reset) ? '0 : b;
-
-    out_valid <= (reset) ? '0 : next_out_valid;
-    out       <= (reset) ? '0 : next_out;
-end
+// Compute the result
+assign result = ('0 == in_valid_r)    ? '0                 :
+                (OP_AND   == op_in_r) ?   a_in_r & b_in_r  :
+                (OP_NAND  == op_in_r) ? ~(a_in_r & b_in_r) :
+                (OP_OR    == op_in_r) ?   a_in_r | b_in_r  :
+                (OP_NOR   == op_in_r) ? ~(a_in_r | b_in_r) :
+                (OP_XOR   == op_in_r) ?   a_in_r ^ b_in_r  :
+                (OP_XNOR  == op_in_r) ? ~(a_in_r ^ b_in_r) :
+                (OP_NOT_A == op_in_r) ? ~a_in_r            :
+                (OP_NOT_B == op_in_r) ? ~b_in_r            :
+                                        '0                 ;
 
 endmodule
