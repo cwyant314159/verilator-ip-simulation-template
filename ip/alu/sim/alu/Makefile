@@ -108,6 +108,10 @@ SV_PKGS := ../../hdl/op_code_pkg.sv
 # of module dependencies. A module's dependency should
 # come before the module itself.
 SV_SRCS := $(SV_PKGS)
+SV_SRCS += ../../hdl/and_block.sv
+SV_SRCS += ../../hdl/not_block.sv
+SV_SRCS += ../../hdl/or_block.sv
+SV_SRCS += ../../hdl/xor_block.sv
 SV_SRCS += ../../hdl/$(MODULE).sv
 
 # The list of directories that contain the
@@ -134,7 +138,7 @@ VERI_FLAGS += --Mdir $(VERI_DIR)
 VERI_FLAGS += --prefix $(VERI_PREFIX)
 VERI_FLAGS += --MMD
 VERI_FLAGS += --MP
-VERI_FLAGS += -GWIDTH=32
+VERI_FLAGS += -GWIDTH=32 # override the width parameter of the ALU
 
 # This variable is used by the dump
 # target to format the output of Make
