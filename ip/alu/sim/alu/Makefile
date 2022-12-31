@@ -149,19 +149,26 @@ VERI_FLAGS += -GWIDTH=32 # override the width parameter of the ALU
 # until this variable is used.
 DUMP_FMT := tr " " "\n" | sed 's/^\(\w\|-\)/    \1/; /^$$/d'
 
-# Build everything
-all: $(BIN_DIR)/$(BIN) 
+# Build the entire test bench. The
+# all target buids the Verilator
+# support library and the DUT library
+# before building the final test bench
+# executable.
+all: $(VERI_SUPPORT_LIB) $(DUT_LIB) $(BIN_DIR)/$(BIN) 
 
 # Run the executable
 .PHONY: run
-run: $(BIN_DIR)/$(BIN)
-	@$^ +verilator+rand+reset+2
+run: all
+	@$(BIN_DIR)/$(BIN) +verilator+rand+reset+2
 
 # Verilate HDL
+.PHONY: verilate
 verilate: $(DUT_LIB)
 
-# C++ application link target
-$(BIN_DIR)/$(BIN): $(DUT_LIB) $(VERI_SUPPORT_LIB) $(OBJS)
+# C++ application link target. The
+# ordering of the target dependencies
+# matters. 
+$(BIN_DIR)/$(BIN): $(OBJS) $(DUT_LIB) $(VERI_SUPPORT_LIB)
 	@$(MKDIR) $$(dirname $@)
 	$(LD) $(LDFLAGS) $^ -o $@
 

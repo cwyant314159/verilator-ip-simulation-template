@@ -20,6 +20,11 @@ SimNotBlock::~SimNotBlock()
   mTrace.close();
 }
 
+vluint64_t SimNotBlock::get_fail_count()
+{
+  return mFailCount;
+}
+
 void SimNotBlock::IoTest(vluint32_t in)
 {
   std::cout << "IO Test (in = " << in << ")\n";

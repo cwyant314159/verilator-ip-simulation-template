@@ -20,6 +20,11 @@ SimXorBlock::~SimXorBlock()
   mTrace.close();
 }
 
+vluint64_t SimXorBlock::get_fail_count()
+{
+  return mFailCount;
+}
+
 void SimXorBlock::IoTest(vluint32_t a, vluint32_t b)
 {
   std::cout << "IO Test (a = " << a << " b = "<< b << ")\n";

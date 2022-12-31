@@ -20,6 +20,11 @@ SimAndBlock::~SimAndBlock()
   mTrace.close();
 }
 
+vluint64_t SimAndBlock::get_fail_count()
+{
+  return mFailCount;
+}
+
 void SimAndBlock::IoTest(vluint32_t a, vluint32_t b)
 {
   std::cout << "IO Test (a = " << a << " b = "<< b << ")\n";

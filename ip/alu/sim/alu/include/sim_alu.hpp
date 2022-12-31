@@ -10,6 +10,7 @@ class SimAlu {
 public:
   SimAlu();
   ~SimAlu();
+  vluint64_t get_fail_count();
   void op_and_test(vluint32_t a, vluint32_t b);
   void op_nand_test(vluint32_t a, vluint32_t b);
   void op_or_test(vluint32_t a, vluint32_t b);

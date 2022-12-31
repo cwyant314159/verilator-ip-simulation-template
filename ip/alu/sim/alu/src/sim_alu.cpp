@@ -22,6 +22,11 @@ SimAlu::~SimAlu()
   mTrace.close();
 }
 
+vluint64_t SimAlu::get_fail_count()
+{
+  return mFailCount;
+}
+
 void SimAlu::op_and_test(vluint32_t a, vluint32_t b)
 {
   std::cout << "AND Test (a = " << a << " b = " << b << ")\n";

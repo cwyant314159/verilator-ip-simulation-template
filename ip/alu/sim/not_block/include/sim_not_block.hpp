@@ -10,6 +10,7 @@ class SimNotBlock {
 public:
   SimNotBlock();
   ~SimNotBlock();
+  vluint64_t get_fail_count();
   void IoTest(vluint32_t in);
 
 private:

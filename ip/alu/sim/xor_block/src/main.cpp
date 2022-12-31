@@ -19,5 +19,5 @@ int main(int argc, char** argv)
         }
     }
 
-    return 0;
+    return simDut.get_fail_count() > 0;
 }

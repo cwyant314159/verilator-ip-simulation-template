@@ -10,6 +10,7 @@ class SimOrBlock {
 public:
   SimOrBlock();
   ~SimOrBlock();
+  vluint64_t get_fail_count();
   void IoTest(vluint32_t a, vluint32_t b);
   void InvertIoTest(vluint32_t a, vluint32_t b);
 

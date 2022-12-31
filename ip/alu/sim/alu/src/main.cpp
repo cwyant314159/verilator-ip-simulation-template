@@ -5,53 +5,53 @@ int main(int argc, char** argv)
 {
     Verilated::commandArgs(argc, argv);
 
-    SimAlu sim_alu;
+    SimAlu simDut;
 
-    sim_alu.reset();
+    simDut.reset();
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_and_test(a, b);
+            simDut.op_and_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_nand_test(a, b);
+            simDut.op_nand_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_or_test(a, b);
+            simDut.op_or_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_nor_test(a, b);
+            simDut.op_nor_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_xor_test(a, b);
+            simDut.op_xor_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFF; ++a) {
         for (vluint32_t b = 0; b <= 0xFF; ++b) {
-            sim_alu.op_xnor_test(a, b);
+            simDut.op_xnor_test(a, b);
         }
     }
 
     for (vluint32_t a = 0; a <= 0xFFFF; ++a) {
-        sim_alu.op_not_a_test(a);
+        simDut.op_not_a_test(a);
     }
 
     for (vluint32_t b = 0; b <= 0xFFFF; ++b) {
-        sim_alu.op_not_b_test(b);
+        simDut.op_not_b_test(b);
     }
     
-    return 0;
+    return simDut.get_fail_count() > 0;
 }
