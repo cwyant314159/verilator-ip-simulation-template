@@ -116,16 +116,13 @@ SV_SRCS += ../../hdl/$(MODULE).sv
 SV_DIRS := $(sort $(foreach src, $(SV_SRCS), $(shell dirname $(src))))
 SV_INC_DIRS := $(foreach dir, $(SV_DIRS), $(addprefix -I, $(dir)))
 
-# Verilator linting flags
-LINT_FLAGS :=
-LINT_FLAGS += -Wall
-LINT_FLAGS += -Wpedantic
-LINT_FLAGS += -Wwarn-lint
-LINT_FLAGS += -Wwarn-style
-LINT_FLAGS += $(SV_INC_DIRS) 
-
 # Verilator flags
-VERI_FLAGS := $(LINT_FLAGS)
+VERI_FLAGS :=
+VERI_FLAGS += -Wall
+VERI_FLAGS += -Wpedantic
+VERI_FLAGS += -Wwarn-lint
+VERI_FLAGS += -Wwarn-style
+VERI_FLAGS += $(SV_INC_DIRS) 
 VERI_FLAGS += --x-assign unique
 VERI_FLAGS += --x-initial unique
 VERI_FLAGS += --trace
@@ -204,7 +201,7 @@ clean_all: clean
 # HDL linting target
 .PHONY: lint
 lint:
-	@verilator --lint-only $(LINT_FLAGS) $(SV_SRCS)
+	@verilator --lint-only $(VERI_FLAGS) $(SV_SRCS)
 
 # This target is mostly used for
 # debugging. It pretty prints the

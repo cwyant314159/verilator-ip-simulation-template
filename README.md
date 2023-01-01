@@ -9,6 +9,18 @@ both `a` and `b` individually. There are also opcodes for a unary NOT on `a` and
 operations are done inside of sub-modules that are instantiated in the main ALU
 module.
 
+Required Software
+-----------------
+
+The following is a list of all software needed to run the simulations in this
+repo.
+
+- make
+- Verilator
+- GCC
+
+All scripts and Makefiles assume the tools will be on the system path.
+
 Folder Structure
 ----------------
 
@@ -45,12 +57,68 @@ If you know of a way to get Verilator to build a multiple C++ files, please
 submit a pull-request with an example. I am very interested to know if it's
 possible.
 
-Required Software
------------------
-
-> _TODO_
 
 Simulation Makefiles
 --------------------
 
-> _TODO_
+The Makefiles in the module's simulation directory follow the same structure
+as the Makefile in my [generic-application-template](https://github.com/cwyant314159/generic-application-template)
+repo. This README will only discuss any important differences from the 
+template Makefile.
+
+The first major difference between the simulation Makefile and the template is
+the inclusion of variables related to the Verilator support ( `VERI_xx` ) and
+the DUT ( `DUT_LIB` ) libraries. These variables setup the paths and library
+names needed by the Verilator and C++ compiles.
+
+Variables prefixed with `SV_` are for specifying SystemVerilog (or Verilog)
+source files and include paths. Since SystemVerilog packages must be listed
+first when calling the Verilator command, a separate `SV_PKGS` variable is
+created and assigned to the first elements of the `SV_SRCS` variable. Verilator
+is a little weird in that the directories of the source files must be passed to
+verilator with the `-I` argument (similar to GCC's `-I`). The variable
+`SV_INC_DIRS` will contain the relative directory paths of all the files in the
+`SV_SRCS` variable.
+
+The `VERI_FLAGS` variable contains all the flags passed to Verilator for both
+verilation and linting.
+
+There are several additional targets that are required to handle Verilator 
+simulation builds. To just verilate the HDL, a user can run the `verilate`
+target. The output of this target is the DUT static library located in the
+directory specified in the `VERI_DIR` variable. The `lint` target will run
+Verilator with the `--lint-only` argument and output all linter violations to
+the terminal.
+
+Aside from the additional variables and targets, there is also an dependency
+ordering requirment on the `all` and application linking target. To link the
+supporting libraries and object files in the correct order, the linking target
+must list the dependencies in the following order: 
+
+1. C++ object files ( `OBJS` )
+2. DUT library ( `DUT_LIB` ) 
+3. Verilator support library ( `VERI_SUPPORT_LIB` )
+
+```bash
+# C++ application link target. The
+# ordering of the target dependencies
+# matters. 
+$(BIN_DIR)/$(BIN): $(OBJS) $(DUT_LIB) $(VERI_SUPPORT_LIB)
+```
+
+This ordering only ensures all object and library files are linked in the
+correct order. To handle the build order, the `all` target must have its
+dependencies in the following order: 
+
+1. Verilator support library ( `VERI_SUPPORT_LIB` )
+2. DUT library ( `DUT_LIB` )
+3. C++ object files ( `OBJS` )
+
+```bash
+# Build the entire test bench. The
+# all target buids the Verilator
+# support library and the DUT library
+# before building the final test bench
+# executable.
+all: $(VERI_SUPPORT_LIB) $(DUT_LIB) $(BIN_DIR)/$(BIN) 
+```
